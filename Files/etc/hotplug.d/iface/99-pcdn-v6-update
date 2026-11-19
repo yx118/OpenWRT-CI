@@ -1,0 +1,28 @@
+#!/bin/sh
+# wan6 前缀变化时自动更新 PCDN-V6-UDP-IN 的 dest_ip
+# 规则不存在时静默退出（尊重用户删除意图；全新固件由 uci-defaults/99-pcdn-v6-rule 创建）
+# 注: 本固件 jsonfilter 不支持连字符字段名, 改用 sed 提取 ubus JSON
+[ "$ACTION" = "ifup" ] || [ "$ACTION" = "ifupdate" ] || exit 0
+[ "$INTERFACE" = "wan6" ] || exit 0
+uci -q get firewall.pcdn_v6 >/dev/null || exit 0
+
+J=$(ubus call network.interface.wan6 status 2>/dev/null)
+PADDR=""
+[ -n "$J" ] && PADDR=$(printf "%s" "$J" | tr -d " \n\t" | sed -n "s/.*\"ipv6-prefix\":\[{\"address\":\"\([0-9a-fA-F:]*\)\".*/\1/p" | head -n1)
+[ -n "$PADDR" ] || PADDR=$(printf "%s" "$J" | tr -d " \n\t" | sed -n "s/.*\"ipv6-prefix-assignment\":\[{\"address\":\"\([0-9a-fA-F:]*\)\".*/\1/p" | head -n1)
+[ -n "$PADDR" ] || PADDR=$(ip -6 addr show dev br-lan scope global 2>/dev/null | grep -v deprecated | sed -n "s/^ *inet6 \([0-9a-f:]*\)::.*/\1/p" | head -n1)
+[ -n "$PADDR" ] || exit 0
+
+case "$PADDR" in
+  *::*) NEW64="${PADDR%%::*}::/64" ;;
+  *)    NEW64="${PADDR}::/64" ;;
+esac
+
+CUR=$(uci -q get firewall.pcdn_v6.dest_ip)
+if [ "$CUR" != "$NEW64" ]; then
+  uci set firewall.pcdn_v6.dest_ip="$NEW64"
+  uci commit firewall
+  /etc/init.d/firewall reload >/dev/null 2>&1
+  logger -t pcdn-v6 "prefix updated: ${CUR:-none} -> $NEW64"
+fi
+exit 0

@@ -188,6 +188,13 @@ jobs:
 
           $GITHUB_WORKSPACE/Scripts/Patch.sh
 
+      - name: Custom Files
+        if: ${{ env.WRT_TARGET == 'qualcommax' }}
+        run: |
+          mkdir -p ./wrt/files/
+          cp -rf $GITHUB_WORKSPACE/Files/. ./wrt/files/
+          chmod +x ./wrt/files/etc/hotplug.d/iface/99-pcdn-v6-update ./wrt/files/etc/uci-defaults/99-pcdn-v6-rule
+
       - name: Custom Packages
         run: |
           cd ./wrt/

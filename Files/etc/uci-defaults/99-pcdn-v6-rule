@@ -1,0 +1,15 @@
+#!/bin/sh
+# QCA 平台固件首次开机创建 PCDN IPv6 入站放行规则
+# dest_ip 初始为不可路由的文档前缀占位, wan6 首次 ifup 后由 hotplug.d/iface/99-pcdn-v6-update 填充真实前缀
+[ "$(uci -q get firewall.pcdn_v6)" = "rule" ] && exit 0
+
+uci -q set firewall.pcdn_v6=rule
+uci -q set firewall.pcdn_v6.name='PCDN-V6-UDP-IN'
+uci -q set firewall.pcdn_v6.family='ipv6'
+uci -q set firewall.pcdn_v6.proto='udp'
+uci -q set firewall.pcdn_v6.src='wan'
+uci -q set firewall.pcdn_v6.dest='lan'
+uci -q set firewall.pcdn_v6.dest_ip='2001:db8::/64'
+uci -q set firewall.pcdn_v6.target='ACCEPT'
+uci commit firewall
+exit 0
