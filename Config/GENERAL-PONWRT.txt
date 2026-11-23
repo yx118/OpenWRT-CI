@@ -17,10 +17,11 @@ CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-run=y
 #CONFIG_PACKAGE_luci-app-zerotier=y
 #CONFIG_PACKAGE_luci-proto-wireguard=y
+CONFIG_PACKAGE_luci-app-ttyd=y
 #删除插件
 CONFIG_PACKAGE_luci-app-attendedsysupgrade=n
 CONFIG_PACKAGE_luci-app-wol=n
-CONFIG_PACKAGE_luci-app-vlmcsd=n
+CONFIG_PACKAGE_luci-app-vlmcsd=y
 #参数调整（pon feed 必须开启，与 GENERAL.txt 的关闭行为相反）
 CONFIG_CCACHE=y
 CONFIG_DEVEL=y
