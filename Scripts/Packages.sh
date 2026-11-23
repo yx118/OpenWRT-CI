@@ -137,6 +137,8 @@ UPDATE_PACKAGE "natmapt" "zhoufla/openwrt-natmapt" "master"
 UPDATE_PACKAGE "stuntman" "muink/openwrt-stuntman" "master"
 UPDATE_PACKAGE "luci-app-natmapt" "zhoufla/luci-app-natmapt" "master"
 
+UPDATE_PACKAGE "airoha-npu" "luanmuc/luci-app-airoha-npu" "main"
+
 UPDATE_PACKAGE "airpi3000m-fancontrol" "LianXia233/luci-app-airpi3000m-fancontrol" "main"
 UPDATE_PACKAGE "chfs" "LianXia233/luci-app-chfs" "main"
 UPDATE_PACKAGE "fm350" "LianXia233/luci-app-fm350" "main"
