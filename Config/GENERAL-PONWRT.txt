@@ -14,7 +14,7 @@ CONFIG_PACKAGE_luci-app-natmapt=y
 CONFIG_PACKAGE_natmapt-notify-script-telegram=y
 CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-uhttpd=y
-#CONFIG_PACKAGE_luci-app-run=y
+CONFIG_PACKAGE_luci-app-run=y
 #CONFIG_PACKAGE_luci-app-zerotier=y
 #CONFIG_PACKAGE_luci-proto-wireguard=y
 #删除插件
