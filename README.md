@@ -41,6 +41,8 @@ IPQ60XX / IPQ807X 每种机型发布两个版本：
 | 设备维护 | `luci-app-wolultra`、`luci-app-autoreboot`、`luci-app-uhttpd` |
 | 界面 | `luci-theme-aurora` + `aurora-config`、简体中文语言包 |
 
+- PONWRT 平台额外包含 `luci-app-airoha-npu`（Airoha SoC 状态：NPU/PPE/CPU；由 `Scripts/Packages.sh` 从 `luanmuc/luci-app-airoha-npu` 拉取，仅 airoha 目标启用）。
+
 - 内核侧包含 nftables 全功能集、FullCone NAT、WireGuard/tun、USB 网卡与存储、NVMe / SATA、btrfs 等，按功能分类的明细见 [docs/PLUGINS.md](docs/PLUGINS.md)。
 - 明确不编译：`vlmcsd`、`wol`（被 wolultra 取代）、`attendedsysupgrade`。
 - 部分插件（openclash、mosdns、qbittorrent、多主题等）仅克隆备用、默认不编译，可手动编译时启用，或通过手动触发工作流的 **PACKAGE** 参数临时追加。

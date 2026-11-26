@@ -86,6 +86,7 @@
 |---|---|
 | 代理 | `luci-app-homeproxy`（同 QCA，sing-box 内核） |
 | 插件 | `luci-app-natmapt` + Telegram 通知、`luci-app-ddns-go`、`luci-app-autoreboot`、`luci-app-mini-diskmanager`、`luci-app-msd_lite`、`luci-app-samba4`、`luci-app-uhttpd`、`luci-app-zerotier`、`luci-app-iptv`、`luci-app-cpufreq`、`luci-app-pon`（pon_userspace feed）、`luci-proto-wireguard` |
+| SoC 状态 | `luci-app-airoha-npu`（`Scripts/Packages.sh` 从 `luanmuc/luci-app-airoha-npu` 拉取，显示 NPU 加载/核数/频率、PPE 流表、CPU 调频/温度；仅 `@TARGET_airoha`；未启用 devmem 时超频/Frame Engine 不可用） |
 | 组件 | `autocore`、`automount`、`curl`、`wireguard-tools`、`stuntman-client`（natmapt STUN）、`kmod-nf-tproxy`/`kmod-nft-tproxy`（透明代理）、`kmod-nf-conntrack-bridge`（AN7583 已无 profile 默认提供） |
 | 关闭 | `luci-app-vlmcsd`、`luci-app-wol`、`luci-app-attendedsysupgrade`（与 QCA 相同） |
 | 参数 | `CONFIG_FEED_pon_drivers/pon_userspace=y`（pon feed 必须开启，与 QCA 的 `=n` 相反）、`CONFIG_TARGET_ROOTFS_INITRAMFS=y`、`CCACHE`/`DEVEL` |
