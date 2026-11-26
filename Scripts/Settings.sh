@@ -44,11 +44,62 @@ if [ -n "$WRT_PACKAGE" ]; then
 fi
 
 #高通平台调整
-DTS_PATH="./target/linux/qualcommax/dts/"
-if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* ]]; then
-	#无WIFI配置调整Q6大小
-	if [[ "$WRT_WIFI" == "WIFI-NO" ]]; then
-		find $DTS_PATH -type f ! -iname '*nowifi*' -exec sed -i 's/ipq\(6018\|8074\).dtsi/ipq\1-nowifi.dtsi/g' {} +
-		echo "qualcommax set up nowifi successfully!"
+#WIFI-NO 时缩小 Q6（WiFi 子系统）保留内存。两条策略：
+#  1) 源码树自带 ipq6018/ipq8074-nowifi.dtsi（VIKINGYFY 分支）→ 改设备 dts 的 include，与改动前行为一致
+#  2) 树内没有 nowifi dtsi（LibWrt 主线）→ 把 DTS/ 下的覆写片段拷进 dts 目录，追加到设备 dts 末尾
+#两条策略都不适用时只保留「移除 ath11k 包」，构建继续，不中断
+if [[ "${WRT_TARGET^^}" == *"QUALCOMMAX"* && "$WRT_WIFI" == "WIFI-NO" ]]; then
+	DTS_DEVICE_DIR="./target/linux/qualcommax/dts"
+	DTS_OVERLAY="./target/linux/qualcommax/files/arch/arm64/boot/dts/qcom"
+	TREE_NOWIFI=0
+
+	for DIR in "$DTS_DEVICE_DIR" "$DTS_OVERLAY"; do
+		[ -d "$DIR" ] || continue
+		if [ -f "$DIR/ipq6018-nowifi.dtsi" ] || [ -f "$DIR/ipq8074-nowifi.dtsi" ]; then
+			TREE_NOWIFI=1
+			break
+		fi
+	done
+
+	if [ "$TREE_NOWIFI" = "1" ] && [ -d "$DTS_DEVICE_DIR" ]; then
+		#树内已有 nowifi dtsi：只改设备 dts 的 include，不动 SoC 级 dtsi（避免重复包含）
+		find "$DTS_DEVICE_DIR" -maxdepth 1 -type f ! -iname '*nowifi*' -exec sed -i 's/"ipq\(6018\|8074\).dtsi"/"ipq\1-nowifi.dtsi"/g' {} +
+		echo "qualcommax set up nowifi successfully (in-tree dtsi)!"
+	elif [ "$TREE_NOWIFI" = "0" ] && [ -d "$GITHUB_WORKSPACE/DTS" ] && [ -d "$DTS_OVERLAY" ]; then
+		NOWIFI_APPLIED=0
+		cp -f "$GITHUB_WORKSPACE"/DTS/*.dtsi "$DTS_OVERLAY"/ 2>/dev/null
+
+		for FILE in "$DTS_OVERLAY"/*.dts "$DTS_OVERLAY"/*.dtsi; do
+			[ -f "$FILE" ] || continue
+
+			BASE=$(basename "$FILE")
+			#跳过 SoC 级 dtsi，只处理设备级 dts/dtsi，避免重复包含
+			case "$BASE" in
+				ipq6018*|ipq8074*) continue ;;
+			esac
+
+			NOWIFI=""
+			if grep -q '"ipq6018.dtsi"\|"ipq6018-512m.dtsi"' "$FILE"; then
+				NOWIFI="ipq6018-nowifi.dtsi"
+			fi
+			if grep -q '"ipq8074.dtsi"' "$FILE"; then
+				NOWIFI="ipq8074-nowifi.dtsi"
+			fi
+			[ -n "$NOWIFI" ] || continue
+			[ -f "$DTS_OVERLAY/$NOWIFI" ] || continue
+			grep -q "\"$NOWIFI\"" "$FILE" && continue
+
+			printf '\n#include "%s"\n' "$NOWIFI" >> "$FILE"
+			NOWIFI_APPLIED=$((NOWIFI_APPLIED + 1))
+			echo "qualcommax nowifi overlay appended: $BASE -> $NOWIFI"
+		done
+
+		if [ "$NOWIFI_APPLIED" -gt 0 ]; then
+			echo "qualcommax set up nowifi successfully (overlay dtsi)!"
+		else
+			echo "qualcommax nowifi skipped: no matching device dts, WIFI-NO keeps package stripping only"
+		fi
+	else
+		echo "qualcommax nowifi skipped: no nowifi dtsi and no DTS/ overlay, WIFI-NO keeps package stripping only"
 	fi
 fi

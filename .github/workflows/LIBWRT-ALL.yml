@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2026 zhoufla
+
+#CI项目：LibWrt（IPQ60XX / IPQ807X 的满血 NSS 支持，kernel 6.12）
+name: LIBWRT-ALL
+
+#CI计划
+on:
+  #自动编译：当Auto-Clean运行完成后
+  workflow_run:
+    workflows: ["Auto-Clean"]
+    types:
+      - completed
+  #手动编译
+  workflow_dispatch:
+    inputs:
+      PACKAGE:
+        description: '手动调整插件包，多个请用\n符号隔开。'
+        required: false
+        type: string
+      TEST:
+        description: '仅输出配置文件，不编译固件。'
+        default: false
+        required: false
+        type: boolean
+
+#CI权限
+permissions: write-all
+
+#CI任务
+jobs:
+  config:
+    name: ${{matrix.CONFIG}}
+    strategy:
+      fail-fast: false
+      #NSS 编译（ECM/nss-drv 全家桶）内存占用高，先限制并发，避免 runner OOM
+      max-parallel: 2
+      matrix:
+        #IPQ60XX（京东云亚瑟 RE-SS-01、雅典娜 RE-CS-02、太乙 RE-CS-07 仅 WIFI-NO）+ IPQ807X（阿里云 AP8220）
+        CONFIG: [LIBWRT-IPQ60XX-WIFI-YES, LIBWRT-IPQ60XX-WIFI-NO, LIBWRT-IPQ807X-WIFI-YES, LIBWRT-IPQ807X-WIFI-NO]
+        SOURCE: [LiBwrt/LibWrt]
+        BRANCH: [25.12-nss]
+
+    #调用公用编译核心WRT-CORE.yml
+    uses: ./.github/workflows/WRT-CORE.yml
+    with:
+      #编译配置
+      WRT_CONFIG: ${{matrix.CONFIG}}
+      #默认主题
+      WRT_THEME: aurora
+      #默认主机名
+      WRT_NAME: OWRT
+      #默认WIFI名称
+      WRT_SSID: OWRT
+      #默认WIFI密码
+      WRT_WORD: 12345678
+      #默认地址
+      WRT_IP: 192.168.10.1
+      #默认密码，仅作提示，修改无用
+      WRT_PW: 无
+      #源码链接
+      WRT_REPO: https://github.com/${{matrix.SOURCE}}.git
+      #源码分支
+      WRT_BRANCH: ${{matrix.BRANCH}}
+      #源码名称
+      WRT_SOURCE: ${{matrix.SOURCE}}
+      #插件调整
+      WRT_PACKAGE: ${{inputs.PACKAGE}}
+      #仅输出配置文件
+      WRT_TEST: ${{inputs.TEST || false}}
+      #通用插件配置（与 QCA 平台共用 GENERAL.txt，保证插件集一致）
+      WRT_GENERAL_FILE: GENERAL
+      #平台专属追加配置（NSS 内存档位、加速模块、全锥 NAT）
+      WRT_EXTRA_CONFIG: LIBWRT

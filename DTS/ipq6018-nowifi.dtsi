@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// WIFI-NO 专用覆写：把 Q6（WiFi 子系统）保留内存从默认的 85MB / 512M 档的 55MB
+// 缩小到 8MB。移除 ath11k 驱动后 Q6 固件不再加载，这段内存可以交还系统。
+//
+// 本文件故意不写 #include "ipq6018.dtsi"：设备 dts 已经（直接或经 ipq6018-512m.dtsi）
+// 包含了它，重复包含会导致 dtc 重复定义报错。脚本只把本文件拷进 dts 目录并在设备 dts
+// 末尾追加一行 #include "ipq6018-nowifi.dtsi"。
+&q6_region {
+	reg = <0x0 0x4ab00000 0x0 0x800000>;
+};

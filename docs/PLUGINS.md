@@ -10,8 +10,9 @@
 
 | 层 | 位置 | 作用范围 |
 |---|---|---|
-| 1 | `Config/GENERAL.txt`（QCA 平台）/ `Config/GENERAL-PONWRT.txt`（PONWRT 平台） | 通用插件，由 `WRT_GENERAL_FILE` 指定，追加到对应非 TEST 配置之后（`WRT-CORE.yml` 的 Custom Settings 步骤） |
+| 1 | `Config/GENERAL.txt`（QCA / LIBWRT 平台）/ `Config/GENERAL-PONWRT.txt`（PONWRT 平台） | 通用插件，由 `WRT_GENERAL_FILE` 指定，追加到对应非 TEST 配置之后（`WRT-CORE.yml` 的 Custom Settings 步骤） |
 | 2 | `Config/平台.txt` | 各平台/机型专属（设备列表、WiFi 驱动、平台硬件支持） |
+| 2.5 | `Config/LIBWRT.txt` | LIBWRT-* 配置专属追加片段（`WRT_EXTRA_CONFIG`）：NSS 内存档位/加速模块、全锥 NAT |
 | 3 | `Scripts/Settings.sh` | 强制追加 `luci`、简体中文语言包、`luci-theme-aurora`、`luci-app-aurora-config` |
 
 > **关键点**：`Scripts/Packages.sh` 中的 `UPDATE_PACKAGE` 只是把第三方仓库克隆到 `./package`，
@@ -24,6 +25,7 @@
 - 配置名包含 `test`（如 `TEST.txt`）→ 只用该文件，**不合并**通用配置
 - 其余配置 → `Config/<配置名>.txt` + 通用配置合并；通用配置由 `WRT_GENERAL_FILE` 指定：
   - QCA 等配置（默认）→ `Config/GENERAL.txt`
+  - `LIBWRT-*` 配置 → `Config/GENERAL.txt` + `Config/LIBWRT.txt`（`WRT_EXTRA_CONFIG` 追加，仅平台差异）
   - `PONWRT-*` 配置（`PONWRT-ALL.yml` 显式指定，`WRT-TEST.yml` 按前缀自动派生）→ `Config/GENERAL-PONWRT.txt`
 
 ## 二、通用插件（QCA 平台固件均包含）
@@ -171,7 +173,17 @@ CONFIG_PACKAGE_luci-app-tailscale=y
 | 工作流 | 平台配置 | 源码 |
 |---|---|---|
 | QCA-ALL | IPQ60XX-WIFI-YES、IPQ60XX-WIFI-NO、IPQ807X-WIFI-YES、IPQ807X-WIFI-NO | `VIKINGYFY/immortalwrt` 分支 `owrt` |
+| LIBWRT-ALL | LIBWRT-IPQ60XX-WIFI-YES、LIBWRT-IPQ60XX-WIFI-NO、LIBWRT-IPQ807X-WIFI-YES、LIBWRT-IPQ807X-WIFI-NO | `LiBwrt/LibWrt` 分支 `25.12-nss` |
 | PONWRT-ALL | PONWRT-AN7581、PONWRT-AN7583 | `zhoufla/ponwrt` 分支 `master` |
+
+LIBWRT-ALL 与 QCA-ALL 的插件集完全相同（共用 `GENERAL.txt`），差异只在平台层：
+
+| 项目 | QCA-ALL（VIKINGYFY） | LIBWRT-ALL（LibWrt） |
+|---|---|---|
+| 硬件加速 | nftables flowtable + PPE（`kmod-nft-offload`） | NSS（`kmod-qca-nss-ecm` + `kmod-qca-nss-drv` 全家桶），源码默认包自带 |
+| 全锥 NAT | `fullconenat-sonic` + `luci-app-fullconenat-sonic`（源码自带） | `kmod-nft-fullcone` + firewall4 `defaults.fullcone`（LibWrt 自带补丁） |
+| WIFI-NO 省内存 | 源码自带 `ipq6018/ipq8074-nowifi.dtsi`，改 include | 仓库 `DTS/ipq6018-nowifi.dtsi` 追加覆写（IPQ807X 暂不覆写） |
+| 内存档位 | 源码默认 | `IPQ_MEM_PROFILE_256` + `NSS_MEM_PROFILE_HIGH`（`Config/LIBWRT.txt`） |
 
 AIROHA 平台固件统一由 PONWRT-ALL 编译发布，Release 页展示的「源码/分支/提交」
 取自实际 clone 的仓库与提交，即真实使用的源码（`zhoufla/ponwrt`）。

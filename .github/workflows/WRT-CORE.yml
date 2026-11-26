@@ -52,6 +52,10 @@ on:
         required: false
         default: GENERAL
         type: string
+      WRT_EXTRA_CONFIG:
+        required: false
+        default: ''
+        type: string
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -69,6 +73,7 @@ env:
   WRT_TEST: ${{inputs.WRT_TEST}}
   WRT_GENERAL: ${{inputs.WRT_GENERAL}}
   WRT_GENERAL_FILE: ${{inputs.WRT_GENERAL_FILE}}
+  WRT_EXTRA_CONFIG: ${{inputs.WRT_EXTRA_CONFIG}}
 
 jobs:
   core:
@@ -209,11 +214,16 @@ jobs:
           cd ./wrt/
 
           # TEST 配置或 WRT_GENERAL=false（配置文件自带完整插件集）时不追加通用配置
-          # 其余配置按 WRT_GENERAL_FILE 指定的通用文件合并（QCA 用 GENERAL.txt，PONWRT 用 GENERAL-PONWRT.txt）
+          # 其余配置按 WRT_GENERAL_FILE 指定的通用文件合并（QCA/LIBWRT 用 GENERAL.txt，PONWRT 用 GENERAL-PONWRT.txt）
           if [[ "${WRT_CONFIG,,}" == *"test"* || "${WRT_GENERAL,,}" == "false" ]]; then
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
           else
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/$WRT_GENERAL_FILE.txt >> .config
+
+            # 平台专属追加片段（如 LIBWRT 的 NSS 档位/加速模块），可选，文件不存在或为空则跳过
+            if [[ -n "${WRT_EXTRA_CONFIG}" && -f "$GITHUB_WORKSPACE/Config/$WRT_EXTRA_CONFIG.txt" ]]; then
+              cat "$GITHUB_WORKSPACE/Config/$WRT_EXTRA_CONFIG.txt" >> .config
+            fi
           fi
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
