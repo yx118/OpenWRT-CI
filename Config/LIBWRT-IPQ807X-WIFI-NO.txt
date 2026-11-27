@@ -13,3 +13,6 @@ CONFIG_PACKAGE_ath11k-firmware-ipq8074=n
 CONFIG_PACKAGE_ath11k-firmware-ipq8074-ddwrt=n
 CONFIG_PACKAGE_ath11k-firmware-qcn9074=n
 CONFIG_PACKAGE_ath11k-firmware-qcn9074-ddwrt=n
+#无线守护进程（qualcommax DEFAULT_PACKAGES 默认带入，WIFI-NO 用不上）
+CONFIG_PACKAGE_wpad-openssl=n
+CONFIG_PACKAGE_hostapd-common=n
