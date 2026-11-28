@@ -12,8 +12,10 @@ sed -i '/^CONFIG_GOLANG_BUILD_BOOTSTRAP=/d; /^# CONFIG_GOLANG_BUILD_BOOTSTRAP is
 printf '# CONFIG_GOLANG_BUILD_BOOTSTRAP is not set\nCONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT="%s"\n' "$GO_ROOT" >> .config
 
 # PGO is unnecessary for the build host; keep target Python flags intact.
+# 只有带 ci-host-python-args 目标的 fork（VIKINGYFY）才能做这项校验，
+# 上游 immortalwrt/packages（LibWrt 使用）没有该目标，直接跳过。
 PYTHON_MAKEFILE=feeds/packages/lang/python/python3/Makefile
-if [ -f "$PYTHON_MAKEFILE" ]; then
+if [ -f "$PYTHON_MAKEFILE" ] && grep -q 'ci-host-python-args' "$PYTHON_MAKEFILE"; then
 	sed -i '/^HOST_CONFIGURE_ARGS[[:space:]]*+=/,/^$/s/--enable-optimizations/--disable-optimizations/' "$PYTHON_MAKEFILE"
 	HOST_PYTHON_ARGS=$(make --no-print-directory -s \
 		-C feeds/packages/lang/python/python3 -f Makefile -f - TOPDIR="$PWD" ci-host-python-args <<'MAKE'
@@ -33,6 +35,9 @@ MAKE
 			exit 1
 			;;
 	esac
+else
+	HOST_PYTHON_ARGS=""
+	echo "host Python PGO handling skipped: feed has no ci-host-python-args target"
 fi
 
 LLVM_ROOT=$(llvm-config --prefix)

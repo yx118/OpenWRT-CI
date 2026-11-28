@@ -1,0 +1,22 @@
+#LibWrt（NSS 平台）专属追加配置
+#由 WRT-CORE 的 WRT_EXTRA_CONFIG 在「机型配置 + GENERAL.txt」之后追加，仅 LIBWRT-* 配置使用
+
+#NSS 内存档位与固件版本
+#取值参考 ZqinKing/wrt_release 的 nss 配置片段；源码未定义的符号会被 defconfig 静默忽略，不会导致构建失败
+CONFIG_IPQ_MEM_PROFILE_256=y
+CONFIG_NSS_MEM_PROFILE_HIGH=y
+CONFIG_NSS_FIRMWARE_VERSION_11_4=y
+CONFIG_ATH11K_MEM_PROFILE_512M=y
+CONFIG_KERNEL_SKB_RECYCLER=y
+CONFIG_KERNEL_SKB_RECYCLER_MULTI_CPU=y
+
+#NSS 常用加速模块（PPPoE / IGS / L2TPv2 / PPTP / LAG）
+#ECM 与 nss-drv 主体已在 qualcommax 的 DEFAULT_PACKAGES 中默认开启
+CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-igs=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-pptp=y
+CONFIG_PACKAGE_kmod-qca-nss-drv-lag-mgr=y
+
+#全锥 NAT：改用 LibWrt 自带 firewall4 fullcone 补丁（不再使用 VIKINGYFY 的 fullconenat-sonic）
+CONFIG_PACKAGE_kmod-nft-fullcone=y

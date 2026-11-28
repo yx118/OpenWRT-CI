@@ -12,7 +12,9 @@
 
 ## 项目决策（勿随上游漂移）
 
-- 每周编译仅保留：QCA-ALL（IPQ60XX、IPQ807X，`VIKINGYFY/immortalwrt` `owrt`）与 PONWRT-ALL（AIROHA AN7581/AN7583，`zhoufla/ponwrt` `master`）；其余平台（IPQ53XX、IPQ95XX、MediaTek、Rockchip、X86）不编。
+- 每周编译仅保留：QCA-ALL（IPQ60XX、IPQ807X，`VIKINGYFY/immortalwrt` `owrt`）、LIBWRT-ALL（IPQ60XX、IPQ807X，`LiBwrt/LibWrt` `25.12-nss`，NSS 加速版）与 PONWRT-ALL（AIROHA AN7581/AN7583，`zhoufla/ponwrt` `master`）；其余平台（IPQ53XX、IPQ95XX、MediaTek、Rockchip、X86）不编。
+- LIBWRT-ALL 与 QCA-ALL 是**同平台双源码**：插件集共用 `Config/GENERAL.txt`，平台差异只放在 `Config/LIBWRT.txt`（`WRT_EXTRA_CONFIG` 追加），不要复制整份通用配置。
+- LibWrt 没有 `fullconenat-sonic`，全锥 NAT 改用其自带的 firewall4 fullcone 补丁（`kmod-nft-fullcone` + `defaults.fullcone`），不要尝试把 VIKINGYFY 的包塞进 LibWrt。
 - AIROHA 平台固件统一由 PONWRT-ALL 用 zhoufla/ponwrt 源码发布，不采用上游 VIKINGYFY 源码的 AIROHA 构建（`AIROHA-ALL.yml`），避免同源重复编译。
 - 默认主题保持 aurora + aurora-config，不跟随上游换 vantage；`Settings.sh` 中主题配套应用行保留（aurora 无对应包时 defconfig 自动忽略）。
 - Release 页「源码/分支/提交」必须展示实际 clone 编译的源码（WRT-CORE 从真实 clone 取值，勿改回硬编码）。

@@ -22,6 +22,10 @@ on:
           - IPQ807X-WIFI-NO
           - IPQ807X-WIFI-YES
           - IPQ95XX
+          - LIBWRT-IPQ60XX-WIFI-NO
+          - LIBWRT-IPQ60XX-WIFI-YES
+          - LIBWRT-IPQ807X-WIFI-NO
+          - LIBWRT-IPQ807X-WIFI-YES
           - MEDIATEK-WIFI-NO
           - MEDIATEK-WIFI-YES
           - PONWRT-AN7581
@@ -36,10 +40,11 @@ on:
         options:
           - VIKINGYFY/immortalwrt
           - immortalwrt/immortalwrt
+          - LiBwrt/LibWrt
           - zhoufla/ponwrt
       BRANCH:
         default: 'owrt'
-        description: '源码分支，zhoufla/ponwrt 使用 master。'
+        description: '源码分支，zhoufla/ponwrt 使用 master，LiBwrt/LibWrt 使用 25.12-nss。'
         required: true
         type: string
       PACKAGE:
@@ -87,3 +92,5 @@ jobs:
       WRT_TEST: ${{inputs.TEST || false}}
       #通用插件配置（PONWRT 机型自动使用 ponwrt 专用文件，其余用 GENERAL.txt）
       WRT_GENERAL_FILE: ${{ startsWith(inputs.CONFIG, 'PONWRT') && 'GENERAL-PONWRT' || 'GENERAL' }}
+      #平台专属追加片段（LIBWRT 配置追加 NSS 档位 / 全锥 NAT）
+      WRT_EXTRA_CONFIG: ${{ startsWith(inputs.CONFIG, 'LIBWRT') && 'LIBWRT' || '' }}
